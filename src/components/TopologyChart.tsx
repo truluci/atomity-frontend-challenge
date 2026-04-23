@@ -39,10 +39,10 @@ export function TopologyChart({ providers, activeProvider = null }: TopologyChar
 
   return (
     <div
-      className="relative mx-auto flex w-full max-w-md flex-col gap-4 rounded-[var(--radius-xl)] border border-border-subtle bg-bg-elevated p-6 shadow-[0_8px_32px_rgba(15,23,42,0.06)]"
+      className="@container relative mx-auto flex w-full max-w-md flex-col gap-3 rounded-[var(--radius-xl)] border border-border-subtle bg-bg-elevated p-[clamp(1rem,4cqi,1.75rem)] shadow-[0_8px_32px_rgba(15,23,42,0.06)] @xs:gap-4"
       aria-label="Aggregate resource usage across selected providers"
     >
-      <div className="flex h-36 items-end justify-between gap-3 px-1">
+      <div className="flex h-28 items-end justify-between gap-1.5 px-1 @xs:h-36 @xs:gap-2.5 @md:h-40 @md:gap-3">
         {metricValues.map(({ key, value }) => {
           const pct = Math.max(6, (value / max) * 100);
           return (
@@ -65,7 +65,7 @@ export function TopologyChart({ providers, activeProvider = null }: TopologyChar
         })}
       </div>
 
-      <div className="flex justify-between gap-3 px-1 text-[11px] font-medium text-text-secondary">
+      <div className="flex justify-between gap-1.5 px-1 text-[10px] font-medium text-text-secondary @xs:gap-2.5 @xs:text-[11px] @md:gap-3 @md:text-[12px]">
         {metricValues.map(({ key }) => (
           <span key={key} className="flex-1 text-center">
             {METRIC_LABELS[key]}

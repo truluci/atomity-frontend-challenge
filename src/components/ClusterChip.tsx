@@ -2,10 +2,11 @@ import { Hexagon } from "./Hexagon";
 import { tokens } from "@/tokens";
 
 interface ClusterChipProps {
-  size?: number;
-  /** Whether the inner accent square is rendered — visual "active" state. */
+  /** Any CSS length — number (px), clamp(), var(), percentage. */
+  size?: number | string;
+  /** Whether the inner accent glyph is rendered. */
   active?: boolean;
-  /** Swap the accent square for a pair of micro-bars (mini dashboard look). */
+  /** Inner glyph: a single accent square or three mini bars. */
   variant?: "plain" | "bars";
   label?: string;
 }
@@ -30,9 +31,9 @@ export function ClusterChip({
         <span
           aria-hidden
           style={{
-            inlineSize: size * 0.22,
-            blockSize: size * 0.22,
-            borderRadius: 3,
+            inlineSize: "22%",
+            blockSize: "22%",
+            borderRadius: "12%",
             backgroundColor: tokens.color.accentPrimary,
             display: "block",
           }}
@@ -43,14 +44,17 @@ export function ClusterChip({
           aria-hidden
           style={{
             display: "flex",
-            gap: 2,
             alignItems: "flex-end",
+            justifyContent: "center",
+            gap: "6%",
+            inlineSize: "50%",
+            blockSize: "38%",
           }}
         >
           <span
             style={{
-              inlineSize: size * 0.08,
-              blockSize: size * 0.2,
+              inlineSize: "20%",
+              blockSize: "55%",
               backgroundColor: tokens.color.accentPrimary,
               borderRadius: 1.5,
               display: "block",
@@ -58,8 +62,8 @@ export function ClusterChip({
           />
           <span
             style={{
-              inlineSize: size * 0.08,
-              blockSize: size * 0.32,
+              inlineSize: "20%",
+              blockSize: "92%",
               backgroundColor: tokens.color.accentPrimary,
               borderRadius: 1.5,
               display: "block",
@@ -67,8 +71,8 @@ export function ClusterChip({
           />
           <span
             style={{
-              inlineSize: size * 0.08,
-              blockSize: size * 0.14,
+              inlineSize: "20%",
+              blockSize: "38%",
               backgroundColor: tokens.color.accentPrimary,
               borderRadius: 1.5,
               display: "block",

@@ -7,19 +7,19 @@ export function ClusterSection() {
   return (
     <section
       aria-labelledby="cluster-heading"
-      className="relative mx-auto w-full max-w-6xl px-6 py-24"
+      className="relative mx-auto w-full max-w-6xl px-[clamp(1rem,4vw,2rem)] py-[clamp(4rem,10vw,8rem)]"
     >
-      <header className="mb-16 max-w-2xl">
+      <header className="mb-[clamp(2.5rem,4vw,4rem)] max-w-2xl">
         <p className="text-sm font-medium uppercase tracking-[0.18em] text-accent-primary-strong">
           Multi-cloud inventory
         </p>
         <h2
           id="cluster-heading"
-          className="mt-3 text-4xl font-semibold tracking-tight text-text-primary md:text-5xl"
+          className="mt-3 font-semibold tracking-tight text-text-primary text-[clamp(2rem,1.2rem_+_2.5vw,3.25rem)] leading-[1.08]"
         >
           Every cluster, every cloud — one view.
         </h2>
-        <p className="mt-4 text-base text-text-secondary md:text-lg">
+        <p className="mt-4 text-text-secondary text-[clamp(1rem,0.9rem_+_0.3vw,1.125rem)]">
           Atomity reads usage and request signals from each workload you run
           across AWS, Azure, Google Cloud, and on-premise clusters — then
           surfaces the savings hiding inside over-provisioned pods.

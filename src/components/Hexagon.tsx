@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode, SVGProps } from "react";
 
 /**
- * Vertices for a regular hexagon inscribed in a unit viewBox (0..100).
+ * Vertices for a regular hexagon inscribed in a unit viewBox.
  * Flat-top has horizontal top/bottom edges; pointy-top has vertices at
  * 12 and 6 o'clock. `viewBox` dimensions differ to keep the shape regular.
  */
@@ -9,24 +9,31 @@ const GEOMETRY = {
   flat: {
     viewBox: "0 0 100 86.6",
     points: "25,0 75,0 100,43.3 75,86.6 25,86.6 0,43.3",
+    vbW: 100,
+    vbH: 86.6,
   },
   pointy: {
     viewBox: "0 0 86.6 100",
     points: "43.3,0 86.6,25 86.6,75 43.3,100 0,75 0,25",
+    vbW: 86.6,
+    vbH: 100,
   },
 } as const;
 
 export type HexagonOrientation = keyof typeof GEOMETRY;
 
+/**
+ * `size` is either a number (px) or any CSS length string (e.g. `clamp(...)`,
+ * `var(--hex-size)`, `60%`). The shape keeps its aspect ratio via CSS, so the
+ * component accepts fluid sizing without needing to compute in JS.
+ */
 interface HexagonProps extends Omit<SVGProps<SVGSVGElement>, "children"> {
   orientation?: HexagonOrientation;
-  size?: number;
+  size?: number | string;
   stroke?: string;
   strokeWidth?: number;
   fill?: string;
-  /** Content positioned absolutely over the hex via a sibling wrapper. */
   children?: ReactNode;
-  /** Classes applied to the wrapping div so you can size/position the hex. */
   wrapperClassName?: string;
   wrapperStyle?: CSSProperties;
 }
@@ -43,18 +50,17 @@ export function Hexagon({
   ...svgProps
 }: HexagonProps) {
   const geom = GEOMETRY[orientation];
-  const [, , vbW, vbH] = geom.viewBox.split(" ").map(Number);
-  const aspect = vbW / vbH;
-  const width = orientation === "flat" ? size : size * aspect;
-  const height = orientation === "flat" ? size / aspect : size;
+  const sizeCss = typeof size === "number" ? `${size}px` : size;
+  const axisStyle: CSSProperties =
+    orientation === "flat" ? { inlineSize: sizeCss } : { blockSize: sizeCss };
 
   return (
     <div
       className={wrapperClassName}
       style={{
         position: "relative",
-        inlineSize: width,
-        blockSize: height,
+        aspectRatio: `${geom.vbW} / ${geom.vbH}`,
+        ...axisStyle,
         ...wrapperStyle,
       }}
     >

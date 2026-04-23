@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { Hexagon } from "./Hexagon";
 import { ClusterChip } from "./ClusterChip";
 import { tokens } from "@/tokens";
@@ -5,7 +6,6 @@ import type { Provider } from "@/lib/types";
 
 interface ProviderNodeProps {
   provider: Provider;
-  size?: number;
   isActive?: boolean;
   onSelect?: (providerId: Provider["id"]) => void;
 }
@@ -27,12 +27,7 @@ const CHIP_POSITIONS: Record<number, Array<{ top: string; left: string }>> = {
   ],
 };
 
-export function ProviderNode({
-  provider,
-  size = 180,
-  isActive = false,
-  onSelect,
-}: ProviderNodeProps) {
+export function ProviderNode({ provider, isActive = false, onSelect }: ProviderNodeProps) {
   const chipCount = provider.clusters.length;
   const visibleChips = Math.min(chipCount, 3);
   const positions = CHIP_POSITIONS[visibleChips] ?? [];
@@ -40,6 +35,10 @@ export function ProviderNode({
 
   const strokeColor = isActive ? tokens.color.accentPrimaryStrong : tokens.color.accentPrimary;
   const strokeWidth = isActive ? 3 : 2;
+
+  const buttonStyle = {
+    "--hex-size": "clamp(7rem, 18vw, 11rem)",
+  } as CSSProperties;
 
   return (
     <figure className="group/provider relative flex flex-col items-center gap-3">
@@ -49,10 +48,11 @@ export function ProviderNode({
         aria-pressed={isActive}
         aria-label={`Select ${provider.label} (${chipCount} clusters)`}
         className="relative cursor-pointer rounded-[var(--radius-lg)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-primary-strong"
+        style={buttonStyle}
       >
         <Hexagon
           orientation="flat"
-          size={size}
+          size="var(--hex-size)"
           stroke={strokeColor}
           strokeWidth={strokeWidth}
           fill={isActive ? tokens.color.accentPrimarySoft : "transparent"}
@@ -69,7 +69,7 @@ export function ProviderNode({
             style={{ top: pos.top, left: pos.left }}
           >
             <ClusterChip
-              size={Math.round(size * 0.24)}
+              size="calc(var(--hex-size) * 0.24)"
               variant={i === Math.floor(visibleChips / 2) ? "bars" : "plain"}
               label={provider.clusters[i]?.name}
             />
