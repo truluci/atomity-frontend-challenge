@@ -3,6 +3,9 @@ import { CosmicCore } from "./CosmicCore";
 import { ProviderHub } from "./ProviderHub";
 import { ClusterStar } from "./ClusterStar";
 import { Filament } from "./Filament";
+import { DetailPanel } from "./DetailPanel";
+import { ClusterDetailView } from "./ClusterDetailView";
+import { ProviderDetailView } from "./ProviderDetailView";
 import {
   CORE_POSITION,
   PROVIDER_POSITION,
@@ -57,6 +60,26 @@ export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
   };
 
   const anySelection = activeProvider !== null || activeCluster !== null;
+
+  // Which content (if any) drives the detail panel.
+  const panelCluster = activeCluster;
+  const panelProvider = activeCluster
+    ? byId.get(activeCluster.provider) ?? null
+    : activeProvider
+      ? byId.get(activeProvider) ?? null
+      : null;
+  const panelOpen = panelCluster !== null || (activeProvider !== null && panelProvider !== null);
+  const panelTitle = panelCluster
+    ? panelCluster.name
+    : panelProvider
+      ? panelProvider.label
+      : "";
+
+  const handleClosePanel = () => {
+    setActiveProvider(null);
+    setActiveCluster(null);
+    onClusterFocus?.(null);
+  };
 
   const isProviderDim = (id: ProviderId) => {
     if (!anySelection) return false;
@@ -174,6 +197,21 @@ export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
           );
         });
       })}
+
+      <DetailPanel
+        open={panelOpen}
+        onClose={handleClosePanel}
+        title={panelTitle}
+      >
+        {panelCluster ? (
+          <ClusterDetailView
+            cluster={panelCluster}
+            provider={panelProvider ?? undefined}
+          />
+        ) : panelProvider ? (
+          <ProviderDetailView provider={panelProvider} />
+        ) : null}
+      </DetailPanel>
     </div>
   );
 }

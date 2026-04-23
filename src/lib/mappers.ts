@@ -1,4 +1,10 @@
-import type { Cluster, MetricKey, Provider, ProviderId } from "./types";
+import type {
+  Cluster,
+  ClusterDetail,
+  MetricKey,
+  Provider,
+  ProviderId,
+} from "./types";
 
 interface DummyProduct {
   id: number;
@@ -9,6 +15,16 @@ interface DummyProduct {
   weight?: number;
   minimumOrderQuantity?: number;
   warrantyInformation?: string;
+}
+
+/** Full product shape returned by `/products/{id}` — extends the list
+ *  shape with description/tags/category/brand so we can project extra
+ *  cluster-detail fields from it. */
+export interface DummyProductFull extends DummyProduct {
+  description?: string;
+  tags?: string[];
+  category?: string;
+  brand?: string;
 }
 
 const PROVIDER_IDS: ProviderId[] = ["aws", "azure", "gcp", "on-prem"];
@@ -59,6 +75,37 @@ export function productsToProviders(products: DummyProduct[]): Provider[] {
     label: PROVIDER_LABELS[id],
     clusters: clusters.filter((c) => c.provider === id),
   }));
+}
+
+const REGIONS = [
+  "us-east-1",
+  "us-west-2",
+  "eu-west-1",
+  "eu-central-1",
+  "ap-southeast-1",
+  "ap-northeast-1",
+];
+
+export function productToClusterDetail(p: DummyProductFull): ClusterDetail {
+  const idNum = typeof p.id === "number" ? p.id : Number(p.id);
+  const region = REGIONS[idNum % REGIONS.length];
+  const nodeCount = Math.max(2, (p.stock ?? 4) % 11 + 2);
+  const lastScannedMinutes = 2 + (idNum * 7) % 120;
+
+  return {
+    id: String(p.id),
+    description:
+      p.description?.trim() ||
+      "Workload currently over-provisioned relative to its request/limit ratio.",
+    tags: (p.tags ?? [p.category, p.brand].filter(Boolean) as string[]).slice(0, 5),
+    category: p.category ?? "workload",
+    region,
+    nodeCount,
+    notes:
+      p.warrantyInformation ??
+      "Atomity recommends right-sizing CPU/memory requests based on the p95 usage window.",
+    lastScanned: new Date(Date.now() - lastScannedMinutes * 60_000).toISOString(),
+  };
 }
 
 export type { DummyProduct };

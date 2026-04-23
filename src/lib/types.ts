@@ -19,3 +19,19 @@ export interface Provider {
   label: string;
   clusters: Cluster[];
 }
+
+/**
+ * Extra fields fetched on demand when a cluster is selected — kept
+ * separate from `Cluster` so the list query stays lean and the detail
+ * query is cached independently per id.
+ */
+export interface ClusterDetail {
+  id: string;
+  description: string;
+  tags: string[];
+  category: string;
+  region: string;
+  nodeCount: number;
+  notes: string;
+  lastScanned: string;
+}
