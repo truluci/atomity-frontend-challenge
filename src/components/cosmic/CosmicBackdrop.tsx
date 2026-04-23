@@ -32,7 +32,7 @@ export function CosmicBackdrop() {
       style={{
         background: `
           radial-gradient(ellipse at 50% 38%, var(--color-cosmic-nebula) 0%, transparent 55%),
-          radial-gradient(ellipse at 80% 80%, color-mix(in oklab, var(--color-accent-primary) 6%, transparent) 0%, transparent 45%),
+          radial-gradient(ellipse at 80% 80%, color-mix(in oklab, var(--color-cosmic-accent) 6%, transparent) 0%, transparent 45%),
           linear-gradient(180deg, var(--color-cosmic-deep) 0%, var(--color-cosmic-void) 100%)
         `,
       }}

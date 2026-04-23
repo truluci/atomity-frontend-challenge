@@ -27,6 +27,8 @@ export const tokens = {
     accentWarn: cssVar("--color-accent-warn"),
     accentError: cssVar("--color-accent-error"),
 
+    cosmicAccent: cssVar("--color-cosmic-accent"),
+    cosmicAccentStrong: cssVar("--color-cosmic-accent-strong"),
     cosmicVoid: cssVar("--color-cosmic-void"),
     cosmicDeep: cssVar("--color-cosmic-deep"),
     cosmicNebula: cssVar("--color-cosmic-nebula"),

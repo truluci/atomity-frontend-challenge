@@ -64,7 +64,7 @@ export function ClusterStar({
           blockSize: `${haloSize}px`,
           backgroundColor: active
             ? tokens.color.cosmicHalo
-            : `color-mix(in oklab, ${tokens.color.accentPrimary} 18%, transparent)`,
+            : `color-mix(in oklab, ${tokens.color.cosmicAccent} 18%, transparent)`,
           filter: "blur(6px)",
           transition:
             "background-color 0.3s var(--ease-out-soft), inline-size 0.3s var(--ease-out-soft), block-size 0.3s var(--ease-out-soft)",
@@ -78,11 +78,11 @@ export function ClusterStar({
           inlineSize: `${dotSize}px`,
           blockSize: `${dotSize}px`,
           backgroundColor: active
-            ? tokens.color.accentPrimary
+            ? tokens.color.cosmicAccent
             : tokens.color.cosmicStar,
           boxShadow: active
-            ? `0 0 16px color-mix(in oklab, ${tokens.color.accentPrimary} 75%, transparent), 0 0 34px color-mix(in oklab, ${tokens.color.accentPrimary} 40%, transparent)`
-            : `0 0 10px color-mix(in oklab, ${tokens.color.cosmicStar} 60%, transparent), 0 0 20px color-mix(in oklab, ${tokens.color.accentPrimary} 25%, transparent)`,
+            ? `0 0 16px color-mix(in oklab, ${tokens.color.cosmicAccent} 75%, transparent), 0 0 34px color-mix(in oklab, ${tokens.color.cosmicAccent} 40%, transparent)`
+            : `0 0 10px color-mix(in oklab, ${tokens.color.cosmicStar} 60%, transparent), 0 0 20px color-mix(in oklab, ${tokens.color.cosmicAccent} 25%, transparent)`,
           animation: active
             ? undefined
             : `cosmic-twinkle 4s ease-in-out ${twDelay}s infinite`,

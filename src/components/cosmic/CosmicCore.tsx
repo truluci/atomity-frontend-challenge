@@ -83,7 +83,7 @@ export function CosmicCore({
           inlineSize: "44%",
           blockSize: "44%",
           background:
-            "radial-gradient(circle, color-mix(in oklab, var(--color-accent-primary) 40%, transparent) 0%, color-mix(in oklab, var(--color-accent-primary) 12%, transparent) 40%, transparent 72%)",
+            "radial-gradient(circle, color-mix(in oklab, var(--color-cosmic-accent) 40%, transparent) 0%, color-mix(in oklab, var(--color-cosmic-accent) 12%, transparent) 40%, transparent 72%)",
           filter: "blur(4px)",
           animation: "cosmic-pulse 5s ease-in-out infinite",
         }}
@@ -119,7 +119,7 @@ export function CosmicCore({
               d={arcPath(cx, cy, ringRadius, slotStart, slotEnd)}
               pathLength={1}
               fill="none"
-              stroke={tokens.color.accentPrimary}
+              stroke={tokens.color.cosmicAccent}
               strokeWidth={arcWidth + 0.4}
               strokeLinecap="round"
               vectorEffect="non-scaling-stroke"
@@ -135,7 +135,7 @@ export function CosmicCore({
                 ease: [0.22, 1, 0.36, 1],
               }}
               style={{
-                filter: `drop-shadow(0 0 3px color-mix(in oklab, ${tokens.color.accentPrimary} 55%, transparent))`,
+                filter: `drop-shadow(0 0 3px color-mix(in oklab, ${tokens.color.cosmicAccent} 55%, transparent))`,
               }}
             />
           );
@@ -165,12 +165,12 @@ export function CosmicCore({
           cx={cx}
           cy={cy}
           r={5}
-          fill={tokens.color.accentPrimary}
+          fill={tokens.color.cosmicAccent}
           initial={{ opacity: 0, scale: 0 }}
           animate={entered ? { opacity: 1, scale: 1 } : undefined}
           transition={{ duration: 0.6, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
           style={{
-            filter: `drop-shadow(0 0 6px ${tokens.color.accentPrimary}) drop-shadow(0 0 14px color-mix(in oklab, ${tokens.color.accentPrimary} 60%, transparent))`,
+            filter: `drop-shadow(0 0 6px ${tokens.color.cosmicAccent}) drop-shadow(0 0 14px color-mix(in oklab, ${tokens.color.cosmicAccent} 60%, transparent))`,
             transformOrigin: `${cx}px ${cy}px`,
           }}
         />

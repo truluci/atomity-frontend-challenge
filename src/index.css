@@ -33,6 +33,21 @@
   --radius-md: 10px;
   --radius-lg: 16px;
   --radius-xl: 22px;
+
+  /* Cosmic palette — daylight variant. Accent flips to red in light
+     mode; bodies (stars + hub shells) run near-black grey so the web
+     reads as ink on paper. Dark-mode keeps the green. */
+  --color-cosmic-accent: #e14747;
+  --color-cosmic-accent-strong: #b52a2a;
+
+  --color-cosmic-void: #eef1f6;
+  --color-cosmic-deep: #f4f6fa;
+  --color-cosmic-nebula: color-mix(in oklab, var(--color-accent-info) 8%, var(--color-cosmic-void));
+  --color-cosmic-filament: color-mix(in oklab, var(--color-cosmic-accent) 82%, transparent);
+  --color-cosmic-filament-dim: color-mix(in oklab, var(--color-cosmic-accent) 28%, transparent);
+  --color-cosmic-star: #1d2129;
+  --color-cosmic-star-dim: color-mix(in oklab, var(--color-cosmic-star) 40%, transparent);
+  --color-cosmic-halo: color-mix(in oklab, var(--color-cosmic-accent) 30%, transparent);
 }
 
 [data-theme="dark"] {
@@ -53,37 +68,24 @@
   --color-accent-warn: #ffc04d;
   --color-accent-error: #ff6b6b;
 
-  /* Cosmic palette — only meaningful on the dark-scoped cosmic section */
+  /* Cosmic palette — dark variant (green space). Accent stays green;
+     bodies glow light so they pop against the void. */
+  --color-cosmic-accent: var(--color-accent-primary);
+  --color-cosmic-accent-strong: var(--color-accent-primary-strong);
+
   --color-cosmic-void: #04060a;
   --color-cosmic-deep: #0a0f18;
   --color-cosmic-nebula: color-mix(in oklab, var(--color-accent-info) 14%, var(--color-cosmic-void));
-  --color-cosmic-filament: color-mix(in oklab, var(--color-accent-primary) 70%, transparent);
-  --color-cosmic-filament-dim: color-mix(in oklab, var(--color-accent-primary) 28%, transparent);
+  --color-cosmic-filament: color-mix(in oklab, var(--color-cosmic-accent) 70%, transparent);
+  --color-cosmic-filament-dim: color-mix(in oklab, var(--color-cosmic-accent) 28%, transparent);
   --color-cosmic-star: #e6f4ff;
   --color-cosmic-star-dim: color-mix(in oklab, var(--color-cosmic-star) 45%, transparent);
-  --color-cosmic-halo: color-mix(in oklab, var(--color-accent-primary) 36%, transparent);
+  --color-cosmic-halo: color-mix(in oklab, var(--color-cosmic-accent) 36%, transparent);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --color-bg-primary: #0b0d10;
-    --color-bg-elevated: #14171c;
-    --color-bg-muted: #1c2027;
-    --color-border-subtle: #242932;
-    --color-border-strong: #353c47;
-
-    --color-text-primary: #f2f4f7;
-    --color-text-secondary: #aab2be;
-    --color-text-muted: #6d7785;
-
-    --color-accent-primary: #34e189;
-    --color-accent-primary-strong: #21c574;
-    --color-accent-primary-soft: color-mix(in oklab, var(--color-accent-primary) 22%, var(--color-bg-elevated));
-    --color-accent-info: #6f8bff;
-    --color-accent-warn: #ffc04d;
-    --color-accent-error: #ff6b6b;
-  }
-}
+/* NOTE: prefers-color-scheme is handled once at first page load by the
+   inline script in index.html — it writes an explicit `data-theme`
+   attribute, so we don't need a @media fallback here. */
 
 /* Expose the CSS variables as Tailwind theme tokens so utilities like
    `bg-bg-primary` or `text-accent-primary` work anywhere. */
@@ -105,6 +107,8 @@
   --color-accent-warn: var(--color-accent-warn);
   --color-accent-error: var(--color-accent-error);
 
+  --color-cosmic-accent: var(--color-cosmic-accent);
+  --color-cosmic-accent-strong: var(--color-cosmic-accent-strong);
   --color-cosmic-void: var(--color-cosmic-void);
   --color-cosmic-deep: var(--color-cosmic-deep);
   --color-cosmic-nebula: var(--color-cosmic-nebula);
@@ -136,6 +140,9 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  transition:
+    background-color 0.35s var(--ease-out-soft),
+    color 0.35s var(--ease-out-soft);
 }
 
 /* Particle-flow along a dashed SVG path — drives .cosmic-flow */

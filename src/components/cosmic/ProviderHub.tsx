@@ -26,8 +26,8 @@ export function ProviderHub({
   onSelect,
 }: ProviderHubProps) {
   const stroke = active
-    ? tokens.color.accentPrimaryStrong
-    : tokens.color.accentPrimary;
+    ? tokens.color.cosmicAccentStrong
+    : tokens.color.cosmicAccent;
   const coreBoost = active ? 1.15 : 1;
 
   return (
@@ -63,8 +63,8 @@ export function ProviderHub({
             inlineSize: "140%",
             blockSize: "140%",
             background: active
-              ? `radial-gradient(circle, color-mix(in oklab, ${tokens.color.accentPrimary} 42%, transparent) 0%, transparent 68%)`
-              : `radial-gradient(circle, color-mix(in oklab, ${tokens.color.accentPrimary} 22%, transparent) 0%, transparent 68%)`,
+              ? `radial-gradient(circle, color-mix(in oklab, ${tokens.color.cosmicAccent} 42%, transparent) 0%, transparent 68%)`
+              : `radial-gradient(circle, color-mix(in oklab, ${tokens.color.cosmicAccent} 22%, transparent) 0%, transparent 68%)`,
             filter: "blur(10px)",
             transition: "background 0.4s var(--ease-out-soft)",
           }}
@@ -105,11 +105,11 @@ export function ProviderHub({
             cx={50}
             cy={50}
             r={14 * coreBoost}
-            fill={tokens.color.accentPrimary}
+            fill={tokens.color.cosmicAccent}
             style={{
               filter: active
-                ? `drop-shadow(0 0 6px ${tokens.color.accentPrimary}) drop-shadow(0 0 14px color-mix(in oklab, ${tokens.color.accentPrimary} 60%, transparent))`
-                : `drop-shadow(0 0 4px ${tokens.color.accentPrimary}) drop-shadow(0 0 10px color-mix(in oklab, ${tokens.color.accentPrimary} 40%, transparent))`,
+                ? `drop-shadow(0 0 6px ${tokens.color.cosmicAccent}) drop-shadow(0 0 14px color-mix(in oklab, ${tokens.color.cosmicAccent} 60%, transparent))`
+                : `drop-shadow(0 0 4px ${tokens.color.cosmicAccent}) drop-shadow(0 0 10px color-mix(in oklab, ${tokens.color.cosmicAccent} 40%, transparent))`,
               transformOrigin: "50% 50%",
               animation: "cosmic-pulse 3.2s ease-in-out infinite",
               transition: "r 0.3s var(--ease-out-soft)",
