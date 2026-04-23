@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+/* ---- Design tokens (light theme is the default) ---------------------- */
+:root {
+  color-scheme: light dark;
+
+  /* Surfaces */
+  --color-bg-primary: #f6f7f8;
+  --color-bg-elevated: #ffffff;
+  --color-bg-muted: #eceef1;
+  --color-border-subtle: #e2e5ea;
+  --color-border-strong: #cdd2da;
+
+  /* Text */
+  --color-text-primary: #0e0f11;
+  --color-text-secondary: #5b6472;
+  --color-text-muted: #8a93a1;
+
+  /* Brand / accents — green is Atomity's signal color in the video */
+  --color-accent-primary: #2bd67b;
+  --color-accent-primary-strong: #1fb366;
+  --color-accent-primary-soft: color-mix(in oklab, var(--color-accent-primary) 18%, var(--color-bg-elevated));
+  --color-accent-info: #2f5bff;
+  --color-accent-warn: #f0a400;
+  --color-accent-error: #d93f3f;
+
+  /* Motion */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-snappy: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+}
+
+[data-theme="dark"] {
+  --color-bg-primary: #0b0d10;
+  --color-bg-elevated: #14171c;
+  --color-bg-muted: #1c2027;
+  --color-border-subtle: #242932;
+  --color-border-strong: #353c47;
+
+  --color-text-primary: #f2f4f7;
+  --color-text-secondary: #aab2be;
+  --color-text-muted: #6d7785;
+
+  --color-accent-primary: #34e189;
+  --color-accent-primary-strong: #21c574;
+  --color-accent-primary-soft: color-mix(in oklab, var(--color-accent-primary) 22%, var(--color-bg-elevated));
+  --color-accent-info: #6f8bff;
+  --color-accent-warn: #ffc04d;
+  --color-accent-error: #ff6b6b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg-primary: #0b0d10;
+    --color-bg-elevated: #14171c;
+    --color-bg-muted: #1c2027;
+    --color-border-subtle: #242932;
+    --color-border-strong: #353c47;
+
+    --color-text-primary: #f2f4f7;
+    --color-text-secondary: #aab2be;
+    --color-text-muted: #6d7785;
+
+    --color-accent-primary: #34e189;
+    --color-accent-primary-strong: #21c574;
+    --color-accent-primary-soft: color-mix(in oklab, var(--color-accent-primary) 22%, var(--color-bg-elevated));
+    --color-accent-info: #6f8bff;
+    --color-accent-warn: #ffc04d;
+    --color-accent-error: #ff6b6b;
+  }
+}
+
+/* Expose the CSS variables as Tailwind theme tokens so utilities like
+   `bg-bg-primary` or `text-accent-primary` work anywhere. */
+@theme inline {
+  --color-bg-primary: var(--color-bg-primary);
+  --color-bg-elevated: var(--color-bg-elevated);
+  --color-bg-muted: var(--color-bg-muted);
+  --color-border-subtle: var(--color-border-subtle);
+  --color-border-strong: var(--color-border-strong);
+
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+
+  --color-accent-primary: var(--color-accent-primary);
+  --color-accent-primary-strong: var(--color-accent-primary-strong);
+  --color-accent-primary-soft: var(--color-accent-primary-soft);
+  --color-accent-info: var(--color-accent-info);
+  --color-accent-warn: var(--color-accent-warn);
+  --color-accent-error: var(--color-accent-error);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+
+  --font-display: "Inter", system-ui, -apple-system, sans-serif;
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* Base */
+html, body, #root {
+  block-size: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
