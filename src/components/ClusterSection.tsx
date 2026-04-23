@@ -1,5 +1,20 @@
+import { motion, type Variants } from "framer-motion";
 import { useClusters } from "@/hooks/useClusters";
 import { TopologyLayout } from "./TopologyLayout";
+
+const headerContainer: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.12, delayChildren: 0.05 } },
+};
+
+const headerChild: Variants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+  },
+};
 
 export function ClusterSection() {
   const { data, isLoading, isError, refetch } = useClusters();
@@ -9,22 +24,35 @@ export function ClusterSection() {
       aria-labelledby="cluster-heading"
       className="relative mx-auto w-full max-w-6xl px-[clamp(1rem,4vw,2rem)] py-[clamp(4rem,10vw,8rem)]"
     >
-      <header className="mb-[clamp(2.5rem,4vw,4rem)] max-w-2xl">
-        <p className="text-sm font-medium uppercase tracking-[0.18em] text-accent-primary-strong">
+      <motion.header
+        className="mb-[clamp(2.5rem,4vw,4rem)] max-w-2xl"
+        variants={headerContainer}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.4 }}
+      >
+        <motion.p
+          variants={headerChild}
+          className="text-sm font-medium uppercase tracking-[0.18em] text-accent-primary-strong"
+        >
           Multi-cloud inventory
-        </p>
-        <h2
+        </motion.p>
+        <motion.h2
           id="cluster-heading"
+          variants={headerChild}
           className="mt-3 font-semibold tracking-tight text-text-primary text-[clamp(2rem,1.2rem_+_2.5vw,3.25rem)] leading-[1.08]"
         >
           Every cluster, every cloud — one view.
-        </h2>
-        <p className="mt-4 text-text-secondary text-[clamp(1rem,0.9rem_+_0.3vw,1.125rem)]">
+        </motion.h2>
+        <motion.p
+          variants={headerChild}
+          className="mt-4 text-text-secondary text-[clamp(1rem,0.9rem_+_0.3vw,1.125rem)]"
+        >
           Atomity reads usage and request signals from each workload you run
           across AWS, Azure, Google Cloud, and on-premise clusters — then
           surfaces the savings hiding inside over-provisioned pods.
-        </p>
-      </header>
+        </motion.p>
+      </motion.header>
 
       {isLoading && <TopologySkeleton />}
 
