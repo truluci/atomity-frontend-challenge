@@ -18,20 +18,31 @@ interface CosmicWebProps {
   onClusterFocus?: (cluster: Cluster | null) => void;
 }
 
+/**
+ * A single source of truth for what the user is looking at. Collapsing
+ * hub + cluster focus into one discriminated union means selecting a
+ * star in provider B automatically clears a prior selection on hub A —
+ * you can't be focused on two things at once.
+ */
+type Selection =
+  | { type: "provider"; providerId: ProviderId }
+  | { type: "cluster"; cluster: Cluster };
+
 const CORNER_ORDER: ProviderId[] = ["aws", "azure", "gcp", "on-prem"];
 
 export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
-  const [activeProvider, setActiveProvider] = useState<ProviderId | null>(null);
-  const [activeCluster, setActiveCluster] = useState<Cluster | null>(null);
+  const [selection, setSelection] = useState<Selection | null>(null);
 
   const byId = useMemo(
     () => new Map(providers.map((p) => [p.id, p])),
     [providers],
   );
 
-  /** Precompute each cluster's position once per data change. */
   const starsByProvider = useMemo(() => {
-    const map = new Map<ProviderId, Array<{ cluster: Cluster; pos: ReturnType<typeof clusterPosition> }>>();
+    const map = new Map<
+      ProviderId,
+      Array<{ cluster: Cluster; pos: ReturnType<typeof clusterPosition> }>
+    >();
     for (const id of CORNER_ORDER) {
       const p = byId.get(id);
       if (!p) continue;
@@ -48,45 +59,59 @@ export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
     return map;
   }, [byId]);
 
+  // ---- Derived selection helpers --------------------------------------
+  const selectedCluster: Cluster | null =
+    selection?.type === "cluster" ? selection.cluster : null;
+
+  /** The "in focus" provider — either directly selected or owner of the selected cluster. */
+  const focusedProviderId: ProviderId | null =
+    selection?.type === "provider"
+      ? selection.providerId
+      : selection?.type === "cluster"
+        ? selection.cluster.provider
+        : null;
+
+  /** True iff this hub was itself clicked (as opposed to owning a selected cluster). */
+  const isHubDirectlySelected = (id: ProviderId) =>
+    selection?.type === "provider" && selection.providerId === id;
+
+  const hubIsActive = (id: ProviderId) => focusedProviderId === id;
+  const hubIsDim = (id: ProviderId) =>
+    selection !== null && focusedProviderId !== id;
+
+  // ---- Handlers -------------------------------------------------------
   const handleHubSelect = (id: ProviderId) => {
-    setActiveProvider((curr) => (curr === id ? null : id));
-    setActiveCluster(null);
+    setSelection((curr) => {
+      if (curr?.type === "provider" && curr.providerId === id) return null;
+      return { type: "provider", providerId: id };
+    });
     onClusterFocus?.(null);
   };
 
   const handleStarSelect = (cluster: Cluster) => {
-    setActiveCluster((curr) => (curr?.id === cluster.id ? null : cluster));
-    onClusterFocus?.(activeCluster?.id === cluster.id ? null : cluster);
+    setSelection((curr) => {
+      if (curr?.type === "cluster" && curr.cluster.id === cluster.id) {
+        onClusterFocus?.(null);
+        return null;
+      }
+      onClusterFocus?.(cluster);
+      return { type: "cluster", cluster };
+    });
   };
 
-  const anySelection = activeProvider !== null || activeCluster !== null;
-
-  // Which content (if any) drives the detail panel.
-  const panelCluster = activeCluster;
-  const panelProvider = activeCluster
-    ? byId.get(activeCluster.provider) ?? null
-    : activeProvider
-      ? byId.get(activeProvider) ?? null
-      : null;
-  const panelOpen = panelCluster !== null || (activeProvider !== null && panelProvider !== null);
-  const panelTitle = panelCluster
-    ? panelCluster.name
-    : panelProvider
-      ? panelProvider.label
-      : "";
-
   const handleClosePanel = () => {
-    setActiveProvider(null);
-    setActiveCluster(null);
+    setSelection(null);
     onClusterFocus?.(null);
   };
 
-  const isProviderDim = (id: ProviderId) => {
-    if (!anySelection) return false;
-    if (activeProvider === id) return false;
-    if (activeCluster?.provider === id) return false;
-    return true;
-  };
+  // ---- Panel content --------------------------------------------------
+  const panelProvider = focusedProviderId ? byId.get(focusedProviderId) ?? null : null;
+  const panelOpen = selection !== null;
+  const panelTitle = selectedCluster
+    ? selectedCluster.name
+    : panelProvider
+      ? panelProvider.label
+      : "";
 
   return (
     <div
@@ -103,15 +128,11 @@ export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
         viewBox="0 0 100 100"
         preserveAspectRatio="none"
       >
-        {/* Core → hub filaments. Active when either the hub or any of
-             its clusters is the current selection, so a star click
-             illuminates the full path back to the core. */}
+        {/* Core → hub: brighten when the hub's lineage contains the selection. */}
         {CORNER_ORDER.map((id, i) => {
           const hub = PROVIDER_POSITION[id];
-          const hubSelected = activeProvider === id;
-          const starSelected = activeCluster?.provider === id;
-          const active = hubSelected || starSelected;
-          const dim = anySelection && !active;
+          const active = focusedProviderId === id;
+          const dim = selection !== null && !active;
           return (
             <Filament
               key={`core-${id}`}
@@ -127,17 +148,17 @@ export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
           );
         })}
 
-        {/* Hub → cluster filaments. The specific filament to the active
-             star is emphasized; its siblings fade, so a single route
-             stands out through the whole web. */}
+        {/* Hub → cluster: a direct hub selection lights every one of its
+             filaments; a star selection lights only the path to that
+             one cluster, leaving siblings dim. */}
         {CORNER_ORDER.flatMap((id) => {
           const hub = PROVIDER_POSITION[id];
-          const providerActive = activeProvider === id;
+          const hubDirect = isHubDirectlySelected(id);
           const stars = starsByProvider.get(id) ?? [];
           return stars.map(({ cluster, pos }, j) => {
-            const clusterActive = activeCluster?.id === cluster.id;
-            const active = providerActive || clusterActive;
-            const dim = anySelection && !active;
+            const clusterSelected = selectedCluster?.id === cluster.id;
+            const active = hubDirect || clusterSelected;
+            const dim = selection !== null && !active;
             return (
               <Filament
                 key={`hub-${id}-${cluster.id}`}
@@ -155,7 +176,11 @@ export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
         })}
       </svg>
 
-      <CosmicCore providers={providers} activeProvider={activeProvider} />
+      <CosmicCore
+        providers={providers}
+        activeProvider={focusedProviderId}
+        activeCluster={selectedCluster}
+      />
 
       {CORNER_ORDER.map((id, i) => {
         const provider = byId.get(id);
@@ -165,8 +190,8 @@ export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
             key={id}
             provider={provider}
             position={PROVIDER_POSITION[id]}
-            active={activeProvider === id}
-            dim={isProviderDim(id)}
+            active={hubIsActive(id)}
+            dim={hubIsDim(id)}
             delay={0.55 + i * 0.1}
             onSelect={handleHubSelect}
           />
@@ -175,14 +200,16 @@ export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
 
       {CORNER_ORDER.flatMap((id, providerIndex) => {
         const stars = starsByProvider.get(id) ?? [];
+        const hubDirect = isHubDirectlySelected(id);
         return stars.map(({ cluster, pos }, j) => {
-          const isActive = activeCluster?.id === cluster.id;
-          // A star is dim if *something* is selected and it isn't the
-          // focus: another provider is active, or another star is.
+          const isActive = selectedCluster?.id === cluster.id;
+          // Star is dim when *something else* holds the focus. A hub
+          // selection still counts its own stars as bright; a star
+          // selection leaves only that one star bright.
           let dim = false;
-          if (anySelection && !isActive) {
-            if (activeCluster) dim = true;
-            else if (activeProvider !== id) dim = true;
+          if (selection !== null && !isActive) {
+            if (selectedCluster) dim = true;
+            else if (!hubDirect) dim = true;
           }
           return (
             <ClusterStar
@@ -203,9 +230,9 @@ export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
         onClose={handleClosePanel}
         title={panelTitle}
       >
-        {panelCluster ? (
+        {selectedCluster ? (
           <ClusterDetailView
-            cluster={panelCluster}
+            cluster={selectedCluster}
             provider={panelProvider ?? undefined}
           />
         ) : panelProvider ? (

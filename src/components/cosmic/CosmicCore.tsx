@@ -2,11 +2,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import { tokens } from "@/tokens";
 import { arcPath, polarPoint } from "@/lib/cosmicGeometry";
-import type { MetricKey, Provider, ProviderId } from "@/lib/types";
+import type { Cluster, MetricKey, Provider, ProviderId } from "@/lib/types";
 
 interface CosmicCoreProps {
   providers: Provider[];
+  /** Narrow aggregation to a single provider. Ignored when `activeCluster` is set. */
   activeProvider?: ProviderId | null;
+  /** If set, the arcs show this one cluster's raw metrics instead of an average. */
+  activeCluster?: Cluster | null;
 }
 
 const METRIC_ORDER: MetricKey[] = ["cpu", "gpu", "ram", "pv", "network", "cloud"];
@@ -22,7 +25,11 @@ const METRIC_LABELS: Record<MetricKey, string> = {
 const SLOT_SIZE = 60;
 const SLOT_GAP = 6;
 
-export function CosmicCore({ providers, activeProvider = null }: CosmicCoreProps) {
+export function CosmicCore({
+  providers,
+  activeProvider = null,
+  activeCluster = null,
+}: CosmicCoreProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const inView = useInView(containerRef, { once: true, amount: 0.3 });
   const [entered, setEntered] = useState(false);
@@ -36,6 +43,14 @@ export function CosmicCore({ providers, activeProvider = null }: CosmicCoreProps
   }, [inView]);
 
   const metricValues = useMemo(() => {
+    // Cluster selection wins — show its raw numbers rather than an average
+    // so the core accurately reflects what the panel is describing.
+    if (activeCluster) {
+      return METRIC_ORDER.map((key) => ({
+        key,
+        value: activeCluster.metrics[key],
+      }));
+    }
     const scoped = providers.filter((p) => !activeProvider || p.id === activeProvider);
     const clusters = scoped.flatMap((p) => p.clusters);
     const len = clusters.length || 1;
@@ -43,7 +58,7 @@ export function CosmicCore({ providers, activeProvider = null }: CosmicCoreProps
       const avg = clusters.reduce((sum, c) => sum + c.metrics[key], 0) / len;
       return { key, value: Math.round(avg) };
     });
-  }, [providers, activeProvider]);
+  }, [providers, activeProvider, activeCluster]);
 
   const cx = 50;
   const cy = 50;
