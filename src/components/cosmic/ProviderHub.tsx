@@ -8,6 +8,10 @@ interface ProviderHubProps {
   /** Percentage-based position in the radial web. Omit to render inline
    *  (used by the stacked mobile layout). */
   position?: Point;
+  /** Render the text label above the hub instead of below. Used by top-
+   *  row hubs so the label points away from the core rather than into
+   *  the cluster orbit. Only meaningful when `position` is set. */
+  labelAbove?: boolean;
   active?: boolean;
   dim?: boolean;
   delay?: number;
@@ -22,6 +26,7 @@ interface ProviderHubProps {
 export function ProviderHub({
   provider,
   position,
+  labelAbove = false,
   active = false,
   dim = false,
   delay = 0,
@@ -31,6 +36,7 @@ export function ProviderHub({
     ? tokens.color.cosmicAccentStrong
     : tokens.color.cosmicAccent;
   const coreBoost = active ? 1.15 : 1;
+  const positioned = position !== undefined;
 
   return (
     <motion.button
@@ -39,8 +45,8 @@ export function ProviderHub({
       aria-pressed={active}
       aria-label={`Select ${provider.label} (${provider.clusters.length} clusters)`}
       className={
-        position
-          ? "group/hub absolute flex -translate-x-1/2 -translate-y-1/2 cursor-pointer flex-col items-center gap-2 p-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-primary-strong"
+        positioned
+          ? "group/hub absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-primary-strong"
           : "group/hub flex cursor-pointer flex-col items-center gap-2 p-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-primary-strong"
       }
       style={{
@@ -124,16 +130,35 @@ export function ProviderHub({
             }}
           />
         </svg>
+
+        {positioned && (
+          <span
+            className={
+              labelAbove
+                ? "pointer-events-none absolute bottom-full left-1/2 mb-2 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap"
+                : "pointer-events-none absolute left-1/2 top-full mt-2 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap"
+            }
+          >
+            <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-text-primary">
+              {provider.label}
+            </span>
+            <span className="hidden text-[11px] tabular-nums text-text-muted @sm:inline">
+              ·&nbsp;{provider.clusters.length}
+            </span>
+          </span>
+        )}
       </span>
 
-      <span className="flex items-center gap-1.5">
-        <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-text-primary">
-          {provider.label}
+      {!positioned && (
+        <span className="flex items-center gap-1.5">
+          <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-text-primary">
+            {provider.label}
+          </span>
+          <span className="text-[11px] tabular-nums text-text-muted">
+            ·&nbsp;{provider.clusters.length}
+          </span>
         </span>
-        <span className="hidden text-[11px] tabular-nums text-text-muted @sm:inline">
-          ·&nbsp;{provider.clusters.length}
-        </span>
-      </span>
+      )}
     </motion.button>
   );
 }

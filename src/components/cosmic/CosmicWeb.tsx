@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import { CosmicCore } from "./CosmicCore";
 import { ProviderHub } from "./ProviderHub";
 import { ClusterStar } from "./ClusterStar";
@@ -31,9 +32,25 @@ type Selection =
 
 const CORNER_ORDER: ProviderId[] = ["aws", "azure", "gcp", "on-prem"];
 
+/** Top-row hubs push their label upward so it doesn't collide with the
+ *  arc of cluster stars that orbits toward the core. */
+const HUB_LABEL_ABOVE: Record<ProviderId, boolean> = {
+  aws: true,
+  azure: true,
+  gcp: false,
+  "on-prem": false,
+};
+
+/** Width the detail panel occupies on desktop, in rem. The web shrinks
+ *  by this amount (plus the gap) when the panel is open. */
+const PANEL_WIDTH_REM = 22;
+const PANEL_GAP_REM = 1.5;
+const PANEL_OFFSET_REM = PANEL_WIDTH_REM + PANEL_GAP_REM;
+
 export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
   const [selection, setSelection] = useState<Selection | null>(null);
   const isWide = useMediaQuery("(min-width: 640px)");
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   const byId = useMemo(
     () => new Map(providers.map((p) => [p.id, p])),
@@ -136,71 +153,64 @@ export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
     </DetailPanel>
   );
 
-  // ---------------------------------------------------------------------
+  // ---- Canvas (web) ---------------------------------------------------
   // Stacked layout (< sm). Core centered at top; each hub with its stars
   // arranged in its own row. No filaments — the hierarchy is conveyed by
   // the layout itself.
-  // ---------------------------------------------------------------------
-  if (!isWide) {
-    return (
-      <div
-        className="relative w-full"
-        style={{ containerType: "inline-size" }}
-      >
-        <div className="flex flex-col items-stretch gap-10">
-          <div className="flex justify-center pt-2">
-            <CosmicCore
-              providers={providers}
-              activeProvider={focusedProviderId}
-              activeCluster={selectedCluster}
-              stacked
-            />
-          </div>
-
-          {CORNER_ORDER.map((id, providerIndex) => {
-            const provider = byId.get(id);
-            if (!provider) return null;
-            return (
-              <section
-                key={id}
-                className="flex flex-col items-center gap-4"
-                aria-label={`${provider.label} clusters`}
-              >
-                <ProviderHub
-                  provider={provider}
-                  active={hubIsActive(id)}
-                  dim={hubIsDim(id)}
-                  delay={0.2 + providerIndex * 0.08}
-                  onSelect={handleHubSelect}
-                />
-
-                <ul className="flex max-w-[min(22rem,90%)] flex-wrap items-center justify-center gap-1">
-                  {provider.clusters.map((cluster, j) => (
-                    <li key={cluster.id} className="list-none">
-                      <ClusterStar
-                        cluster={cluster}
-                        active={selectedCluster?.id === cluster.id}
-                        dim={computeStarDim(id, cluster.id)}
-                        delay={0.4 + providerIndex * 0.08 + j * 0.03}
-                        onSelect={handleStarSelect}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            );
-          })}
+  const stackedCanvas = (
+    <div
+      className="relative w-full"
+      style={{ containerType: "inline-size" }}
+    >
+      <div className="flex flex-col items-stretch gap-10">
+        <div className="flex justify-center pt-2">
+          <CosmicCore
+            providers={providers}
+            activeProvider={focusedProviderId}
+            activeCluster={selectedCluster}
+            stacked
+          />
         </div>
 
-        {detailPanel}
-      </div>
-    );
-  }
+        {CORNER_ORDER.map((id, providerIndex) => {
+          const provider = byId.get(id);
+          if (!provider) return null;
+          return (
+            <section
+              key={id}
+              className="flex flex-col items-center gap-4"
+              aria-label={`${provider.label} clusters`}
+            >
+              <ProviderHub
+                provider={provider}
+                active={hubIsActive(id)}
+                dim={hubIsDim(id)}
+                delay={0.2 + providerIndex * 0.08}
+                onSelect={handleHubSelect}
+              />
 
-  // ---------------------------------------------------------------------
+              <ul className="flex max-w-[min(22rem,90%)] flex-wrap items-center justify-center gap-1">
+                {provider.clusters.map((cluster, j) => (
+                  <li key={cluster.id} className="list-none">
+                    <ClusterStar
+                      cluster={cluster}
+                      active={selectedCluster?.id === cluster.id}
+                      dim={computeStarDim(id, cluster.id)}
+                      delay={0.4 + providerIndex * 0.08 + j * 0.03}
+                      onSelect={handleStarSelect}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+      </div>
+    </div>
+  );
+
   // Radial web (sm+). Original cosmic layout with filaments.
-  // ---------------------------------------------------------------------
-  return (
+  const radialCanvas = (
     <div
       className="relative w-full"
       style={{
@@ -277,6 +287,7 @@ export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
             key={id}
             provider={provider}
             position={PROVIDER_POSITION[id]}
+            labelAbove={HUB_LABEL_ABOVE[id]}
             active={hubIsActive(id)}
             dim={hubIsDim(id)}
             delay={0.55 + i * 0.1}
@@ -301,8 +312,45 @@ export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
           );
         });
       })}
+    </div>
+  );
 
-      {detailPanel}
+  // ---- Layout ----------------------------------------------------------
+  // Panel renders inline, never as a fixed overlay:
+  //   • lg+  → web takes full width when closed, animates its right
+  //            margin to make room when the panel opens. Panel is
+  //            absolutely positioned on the right so nothing is
+  //            reserved when there's no selection.
+  //   • <lg  → panel stacks below the web in normal flow.
+  const canvas = isWide ? radialCanvas : stackedCanvas;
+
+  if (isDesktop) {
+    return (
+      <div className="relative w-full">
+        <motion.div
+          className="w-auto"
+          initial={false}
+          animate={{
+            marginInlineEnd: panelOpen ? `${PANEL_OFFSET_REM}rem` : "0rem",
+          }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {canvas}
+        </motion.div>
+        <div
+          className="absolute right-0 top-0"
+          style={{ width: `${PANEL_WIDTH_REM}rem` }}
+        >
+          {detailPanel}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex w-full flex-col gap-6">
+      <div className="w-full">{canvas}</div>
+      <div className="w-full">{detailPanel}</div>
     </div>
   );
 }
