@@ -5,7 +5,9 @@ import type { Point } from "@/lib/cosmicGeometry";
 
 interface ProviderHubProps {
   provider: Provider;
-  position: Point;
+  /** Percentage-based position in the radial web. Omit to render inline
+   *  (used by the stacked mobile layout). */
+  position?: Point;
   active?: boolean;
   dim?: boolean;
   delay?: number;
@@ -36,10 +38,13 @@ export function ProviderHub({
       onClick={() => onSelect?.(provider.id)}
       aria-pressed={active}
       aria-label={`Select ${provider.label} (${provider.clusters.length} clusters)`}
-      className="group/hub absolute flex -translate-x-1/2 -translate-y-1/2 cursor-pointer flex-col items-center gap-2 p-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-primary-strong"
+      className={
+        position
+          ? "group/hub absolute flex -translate-x-1/2 -translate-y-1/2 cursor-pointer flex-col items-center gap-2 p-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-primary-strong"
+          : "group/hub flex cursor-pointer flex-col items-center gap-2 p-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-primary-strong"
+      }
       style={{
-        top: `${position.y}%`,
-        left: `${position.x}%`,
+        ...(position ? { top: `${position.y}%`, left: `${position.x}%` } : {}),
         opacity: dim ? 0.42 : 1,
         transition: "opacity 0.4s var(--ease-out-soft)",
       }}
@@ -51,7 +56,10 @@ export function ProviderHub({
       <span
         className="relative block"
         style={{
-          inlineSize: "clamp(4.5rem, 8vw, 6.5rem)",
+          // Size tracks the web's container width (cqw) with a tight
+          // mobile floor so the hubs stay distinct without crushing
+          // adjacent cluster stars.
+          inlineSize: "clamp(2.75rem, 10cqw, 5.5rem)",
           aspectRatio: "1",
         }}
       >
@@ -122,7 +130,7 @@ export function ProviderHub({
         <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-text-primary">
           {provider.label}
         </span>
-        <span className="text-[11px] tabular-nums text-text-muted">
+        <span className="hidden text-[11px] tabular-nums text-text-muted @sm:inline">
           ·&nbsp;{provider.clusters.length}
         </span>
       </span>

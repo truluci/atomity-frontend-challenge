@@ -11,6 +11,7 @@ import {
   PROVIDER_POSITION,
   clusterPosition,
 } from "@/lib/cosmicGeometry";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { Cluster, Provider, ProviderId } from "@/lib/types";
 
 interface CosmicWebProps {
@@ -32,6 +33,7 @@ const CORNER_ORDER: ProviderId[] = ["aws", "azure", "gcp", "on-prem"];
 
 export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
   const [selection, setSelection] = useState<Selection | null>(null);
+  const isWide = useMediaQuery("(min-width: 640px)");
 
   const byId = useMemo(
     () => new Map(providers.map((p) => [p.id, p])),
@@ -79,6 +81,14 @@ export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
   const hubIsDim = (id: ProviderId) =>
     selection !== null && focusedProviderId !== id;
 
+  const computeStarDim = (id: ProviderId, clusterId: string) => {
+    if (selection === null) return false;
+    if (selectedCluster?.id === clusterId) return false;
+    if (selectedCluster) return true;
+    if (!isHubDirectlySelected(id)) return true;
+    return false;
+  };
+
   // ---- Handlers -------------------------------------------------------
   const handleHubSelect = (id: ProviderId) => {
     setSelection((curr) => {
@@ -113,6 +123,83 @@ export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
       ? panelProvider.label
       : "";
 
+  const detailPanel = (
+    <DetailPanel open={panelOpen} onClose={handleClosePanel} title={panelTitle}>
+      {selectedCluster ? (
+        <ClusterDetailView
+          cluster={selectedCluster}
+          provider={panelProvider ?? undefined}
+        />
+      ) : panelProvider ? (
+        <ProviderDetailView provider={panelProvider} />
+      ) : null}
+    </DetailPanel>
+  );
+
+  // ---------------------------------------------------------------------
+  // Stacked layout (< sm). Core centered at top; each hub with its stars
+  // arranged in its own row. No filaments — the hierarchy is conveyed by
+  // the layout itself.
+  // ---------------------------------------------------------------------
+  if (!isWide) {
+    return (
+      <div
+        className="relative w-full"
+        style={{ containerType: "inline-size" }}
+      >
+        <div className="flex flex-col items-stretch gap-10">
+          <div className="flex justify-center pt-2">
+            <CosmicCore
+              providers={providers}
+              activeProvider={focusedProviderId}
+              activeCluster={selectedCluster}
+              stacked
+            />
+          </div>
+
+          {CORNER_ORDER.map((id, providerIndex) => {
+            const provider = byId.get(id);
+            if (!provider) return null;
+            return (
+              <section
+                key={id}
+                className="flex flex-col items-center gap-4"
+                aria-label={`${provider.label} clusters`}
+              >
+                <ProviderHub
+                  provider={provider}
+                  active={hubIsActive(id)}
+                  dim={hubIsDim(id)}
+                  delay={0.2 + providerIndex * 0.08}
+                  onSelect={handleHubSelect}
+                />
+
+                <ul className="flex max-w-[min(22rem,90%)] flex-wrap items-center justify-center gap-1">
+                  {provider.clusters.map((cluster, j) => (
+                    <li key={cluster.id} className="list-none">
+                      <ClusterStar
+                        cluster={cluster}
+                        active={selectedCluster?.id === cluster.id}
+                        dim={computeStarDim(id, cluster.id)}
+                        delay={0.4 + providerIndex * 0.08 + j * 0.03}
+                        onSelect={handleStarSelect}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            );
+          })}
+        </div>
+
+        {detailPanel}
+      </div>
+    );
+  }
+
+  // ---------------------------------------------------------------------
+  // Radial web (sm+). Original cosmic layout with filaments.
+  // ---------------------------------------------------------------------
   return (
     <div
       className="relative w-full"
@@ -200,24 +287,14 @@ export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
 
       {CORNER_ORDER.flatMap((id, providerIndex) => {
         const stars = starsByProvider.get(id) ?? [];
-        const hubDirect = isHubDirectlySelected(id);
         return stars.map(({ cluster, pos }, j) => {
-          const isActive = selectedCluster?.id === cluster.id;
-          // Star is dim when *something else* holds the focus. A hub
-          // selection still counts its own stars as bright; a star
-          // selection leaves only that one star bright.
-          let dim = false;
-          if (selection !== null && !isActive) {
-            if (selectedCluster) dim = true;
-            else if (!hubDirect) dim = true;
-          }
           return (
             <ClusterStar
               key={cluster.id}
               cluster={cluster}
               position={pos}
-              active={isActive}
-              dim={dim}
+              active={selectedCluster?.id === cluster.id}
+              dim={computeStarDim(id, cluster.id)}
               delay={1 + providerIndex * 0.04 + j * 0.035}
               onSelect={handleStarSelect}
             />
@@ -225,20 +302,7 @@ export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
         });
       })}
 
-      <DetailPanel
-        open={panelOpen}
-        onClose={handleClosePanel}
-        title={panelTitle}
-      >
-        {selectedCluster ? (
-          <ClusterDetailView
-            cluster={selectedCluster}
-            provider={panelProvider ?? undefined}
-          />
-        ) : panelProvider ? (
-          <ProviderDetailView provider={panelProvider} />
-        ) : null}
-      </DetailPanel>
+      {detailPanel}
     </div>
   );
 }

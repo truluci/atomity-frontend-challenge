@@ -10,6 +10,9 @@ interface CosmicCoreProps {
   activeProvider?: ProviderId | null;
   /** If set, the arcs show this one cluster's raw metrics instead of an average. */
   activeCluster?: Cluster | null;
+  /** When true, the core flows inline instead of absolute-centering itself
+   *  — used by the stacked (mobile) layout so it can be placed in a flex column. */
+  stacked?: boolean;
 }
 
 const METRIC_ORDER: MetricKey[] = ["cpu", "gpu", "ram", "pv", "network", "cloud"];
@@ -29,6 +32,7 @@ export function CosmicCore({
   providers,
   activeProvider = null,
   activeCluster = null,
+  stacked = false,
 }: CosmicCoreProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const inView = useInView(containerRef, { once: true, amount: 0.3 });
@@ -69,9 +73,15 @@ export function CosmicCore({
   return (
     <div
       ref={containerRef}
-      className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none"
+      className={
+        stacked
+          ? "pointer-events-none relative select-none"
+          : "pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none"
+      }
       style={{
-        inlineSize: "clamp(12rem, 22vw, 17rem)",
+        // Sized against the web's container (not the viewport) so the
+        // core stays proportional inside whatever width the web has.
+        inlineSize: "clamp(7rem, 32cqw, 17rem)",
         aspectRatio: "1",
       }}
     >

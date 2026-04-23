@@ -6,7 +6,9 @@ import { twinkleDelay } from "@/lib/cosmicGeometry";
 
 interface ClusterStarProps {
   cluster: Cluster;
-  position: Point;
+  /** Percentage-based position in the radial web. Omit to render inline
+   *  (used by the stacked mobile layout). */
+  position?: Point;
   active?: boolean;
   dim?: boolean;
   delay?: number;
@@ -43,10 +45,13 @@ export function ClusterStar({
       type="button"
       onClick={() => onSelect?.(cluster)}
       aria-label={`${cluster.name} — ${currencyFmt.format(cluster.estimatedMonthlySavingsUsd)} monthly savings`}
-      className="group/star absolute z-10 grid -translate-x-1/2 -translate-y-1/2 cursor-pointer place-items-center rounded-full bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary-strong"
+      className={
+        position
+          ? "group/star absolute z-10 grid -translate-x-1/2 -translate-y-1/2 cursor-pointer place-items-center rounded-full bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary-strong"
+          : "group/star relative z-10 grid cursor-pointer place-items-center rounded-full bg-transparent p-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary-strong"
+      }
       style={{
-        top: `${position.y}%`,
-        left: `${position.x}%`,
+        ...(position ? { top: `${position.y}%`, left: `${position.x}%` } : {}),
         inlineSize: "32px",
         blockSize: "32px",
       }}
