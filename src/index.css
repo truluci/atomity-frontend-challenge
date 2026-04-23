@@ -52,6 +52,16 @@
   --color-accent-info: #6f8bff;
   --color-accent-warn: #ffc04d;
   --color-accent-error: #ff6b6b;
+
+  /* Cosmic palette — only meaningful on the dark-scoped cosmic section */
+  --color-cosmic-void: #04060a;
+  --color-cosmic-deep: #0a0f18;
+  --color-cosmic-nebula: color-mix(in oklab, var(--color-accent-info) 14%, var(--color-cosmic-void));
+  --color-cosmic-filament: color-mix(in oklab, var(--color-accent-primary) 70%, transparent);
+  --color-cosmic-filament-dim: color-mix(in oklab, var(--color-accent-primary) 28%, transparent);
+  --color-cosmic-star: #e6f4ff;
+  --color-cosmic-star-dim: color-mix(in oklab, var(--color-cosmic-star) 45%, transparent);
+  --color-cosmic-halo: color-mix(in oklab, var(--color-accent-primary) 36%, transparent);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -95,6 +105,15 @@
   --color-accent-warn: var(--color-accent-warn);
   --color-accent-error: var(--color-accent-error);
 
+  --color-cosmic-void: var(--color-cosmic-void);
+  --color-cosmic-deep: var(--color-cosmic-deep);
+  --color-cosmic-nebula: var(--color-cosmic-nebula);
+  --color-cosmic-filament: var(--color-cosmic-filament);
+  --color-cosmic-filament-dim: var(--color-cosmic-filament-dim);
+  --color-cosmic-star: var(--color-cosmic-star);
+  --color-cosmic-star-dim: var(--color-cosmic-star-dim);
+  --color-cosmic-halo: var(--color-cosmic-halo);
+
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
@@ -117,6 +136,27 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* Particle-flow along a dashed SVG path — drives .cosmic-flow */
+@keyframes cosmic-flow {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -32; }
+}
+
+@keyframes cosmic-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.08); opacity: 0.82; }
+}
+
+@keyframes cosmic-twinkle {
+  0%, 100% { opacity: var(--twinkle-from, 0.4); }
+  50% { opacity: var(--twinkle-to, 1); }
+}
+
+@keyframes cosmic-orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {

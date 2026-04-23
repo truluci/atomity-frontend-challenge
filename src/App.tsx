@@ -1,10 +1,14 @@
 import { ClusterSection } from "@/components/ClusterSection";
+import { CosmicBackdrop } from "@/components/cosmic/CosmicBackdrop";
 
 function App() {
   return (
-    <main>
-      <ClusterSection />
-    </main>
+    <>
+      <CosmicBackdrop />
+      <main className="relative z-10">
+        <ClusterSection />
+      </main>
+    </>
   );
 }
 

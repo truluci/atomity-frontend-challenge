@@ -26,6 +26,15 @@ export const tokens = {
     accentInfo: cssVar("--color-accent-info"),
     accentWarn: cssVar("--color-accent-warn"),
     accentError: cssVar("--color-accent-error"),
+
+    cosmicVoid: cssVar("--color-cosmic-void"),
+    cosmicDeep: cssVar("--color-cosmic-deep"),
+    cosmicNebula: cssVar("--color-cosmic-nebula"),
+    cosmicFilament: cssVar("--color-cosmic-filament"),
+    cosmicFilamentDim: cssVar("--color-cosmic-filament-dim"),
+    cosmicStar: cssVar("--color-cosmic-star"),
+    cosmicStarDim: cssVar("--color-cosmic-star-dim"),
+    cosmicHalo: cssVar("--color-cosmic-halo"),
   },
   radius: {
     sm: cssVar("--radius-sm"),

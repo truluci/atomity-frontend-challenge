@@ -1,6 +1,6 @@
 import { motion, type Variants } from "framer-motion";
 import { useClusters } from "@/hooks/useClusters";
-import { TopologyLayout } from "./TopologyLayout";
+import { CosmicWeb } from "./cosmic/CosmicWeb";
 
 const headerContainer: Variants = {
   hidden: {},
@@ -42,19 +42,19 @@ export function ClusterSection() {
           variants={headerChild}
           className="mt-3 font-semibold tracking-tight text-text-primary text-[clamp(2rem,1.2rem_+_2.5vw,3.25rem)] leading-[1.08]"
         >
-          Every cluster, every cloud — one view.
+          A cosmic web of clusters, across every cloud.
         </motion.h2>
         <motion.p
           variants={headerChild}
           className="mt-4 text-text-secondary text-[clamp(1rem,0.9rem_+_0.3vw,1.125rem)]"
         >
-          Atomity reads usage and request signals from each workload you run
-          across AWS, Azure, Google Cloud, and on-premise clusters — then
-          surfaces the savings hiding inside over-provisioned pods.
+          Atomity maps every workload you run — AWS, Azure, Google Cloud,
+          on-premise — into one living topology. Each star is a cluster;
+          each filament, the resources flowing through it.
         </motion.p>
       </motion.header>
 
-      {isLoading && <TopologySkeleton />}
+      {isLoading && <CosmicSkeleton />}
 
       {isError && (
         <div
@@ -72,22 +72,21 @@ export function ClusterSection() {
         </div>
       )}
 
-      {data && <TopologyLayout providers={data} />}
+      {data && <CosmicWeb providers={data} />}
     </section>
   );
 }
 
-function TopologySkeleton() {
+function CosmicSkeleton() {
   return (
     <div
       aria-hidden
-      className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-[1fr_minmax(0,22rem)_1fr] md:gap-x-12 md:gap-y-16"
+      className="relative w-full"
+      style={{ aspectRatio: "5 / 4" }}
     >
-      <div className="h-40 animate-pulse rounded-[var(--radius-lg)] bg-bg-muted md:col-start-1" />
-      <div className="h-40 animate-pulse rounded-[var(--radius-lg)] bg-bg-muted md:col-start-3" />
-      <div className="order-first col-span-2 h-56 animate-pulse rounded-[var(--radius-xl)] bg-bg-muted md:order-none md:col-start-2 md:row-start-2" />
-      <div className="h-40 animate-pulse rounded-[var(--radius-lg)] bg-bg-muted md:col-start-1 md:row-start-3" />
-      <div className="h-40 animate-pulse rounded-[var(--radius-lg)] bg-bg-muted md:col-start-3 md:row-start-3" />
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse text-xs font-medium tracking-[0.24em] text-text-muted">
+        MAPPING THE WEB…
+      </div>
     </div>
   );
 }
