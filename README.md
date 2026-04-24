@@ -1,73 +1,54 @@
-# React + TypeScript + Vite
+# Atomity Frontend Challenge
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interactive "cosmic web" of cloud clusters across AWS, Azure, GCP, and on-prem. A central core connects to four provider hubs; each hub fans out into cluster stars. Click a hub or star to open a detail panel.
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+pnpm install
+pnpm dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Feature chosen
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+**Cluster topology visualization(Option B)** A table would have been easier, but the web metaphor actually earns its space spatial grouping makes the provider-to-cluster relationship cooler, and it allowed me to be more free with animations.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Animation
+
+[framer-motion](https://www.framer.com/motion/) with timing tokens in [src/tokens/index.ts](src/tokens/index.ts).
+
+- One source of truth for focus (`Selection` union in [CosmicWeb.tsx](src/components/cosmic/CosmicWeb.tsx)) — you can't be focused on two things at once.
+- Layout animations over keyframes: the web shrinks and shifts when the panel opens.
+- Stagger on entry, not exit. Cascading exits feel fussy.
+- Easing curves carry the feel (`outSoft`, `outSnappy`), not durations.
+
+## Tokens and styles
+
+CSS custom properties in [src/index.css](src/index.css) are the source of truth, mirrored into a typed TS map in [src/tokens/index.ts](src/tokens/index.ts) for inline use (framer-motion, SVG fills).
+
+## Data fetching
+
+[TanStack Query](https://tanstack.com/query) against [DummyJSON](https://dummyjson.com), reshaped via [mappers.ts](src/lib/mappers.ts).
+
+- [useClusters](src/hooks/useClusters.ts) — list, `staleTime: 5min`.
+- [useClusterDetail](src/hooks/useClusterDetail.ts) — per-id, gated with `enabled`, keyed by cluster id so re-opening is instant.
+- `refetchOnWindowFocus: false` — data isn't volatile enough to justify the jank.
+
+## Libraries
+
+| | Why |
+|---|---|
+| React 19 + TS | Baseline. |
+| Vite | Fast HMR — motion code iterates best with instant reload. |
+| Tailwind v4 | Utility-first, consumes the same CSS vars as framer-motion. |
+| framer-motion | Springs, layout animations, `AnimatePresence`. Not worth hand-rolling. |
+| TanStack Query | Keyed caching and `enabled` flag. Rebuilding this with `useEffect` is half its code. |
+
+## Tradeoffs
+
+- **Responsiveness.** Style I went with is too random and not neatly organized. Displaying the cosmic web style in smaller scales really hard. 
+- **SVG over Canvas.** ~30 stars; DOM cost is negligible and theming comes for free.
+
+
+## What I'd improve
+
+- Derived geometry so the layout isn't pinned to exactly four providers.
+- Better color palette for light mode
