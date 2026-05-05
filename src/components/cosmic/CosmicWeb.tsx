@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { CosmicCore } from "./CosmicCore";
 import { ProviderHub } from "./ProviderHub";
 import { ClusterStar } from "./ClusterStar";
@@ -12,6 +11,7 @@ import {
   PROVIDER_POSITION,
   clusterPosition,
 } from "@/lib/cosmicGeometry";
+import type { Point } from "@/lib/cosmicGeometry";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import type { Cluster, Provider, ProviderId } from "@/lib/types";
 
@@ -41,16 +41,12 @@ const HUB_LABEL_ABOVE: Record<ProviderId, boolean> = {
   "on-prem": false,
 };
 
-/** Width the detail panel occupies on desktop, in rem. The web shrinks
- *  by this amount (plus the gap) when the panel is open. */
-const PANEL_WIDTH_REM = 22;
-const PANEL_GAP_REM = 1.5;
-const PANEL_OFFSET_REM = PANEL_WIDTH_REM + PANEL_GAP_REM;
-
 export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
   const [selection, setSelection] = useState<Selection | null>(null);
+  // Position the panel pops up below. Set on click; intentionally not
+  // cleared on close so the exit animation has a stable origin.
+  const [panelAnchor, setPanelAnchor] = useState<Point | null>(null);
   const isWide = useMediaQuery("(min-width: 640px)");
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   const byId = useMemo(
     () => new Map(providers.map((p) => [p.id, p])),
@@ -112,6 +108,7 @@ export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
       if (curr?.type === "provider" && curr.providerId === id) return null;
       return { type: "provider", providerId: id };
     });
+    setPanelAnchor(PROVIDER_POSITION[id]);
     onClusterFocus?.(null);
   };
 
@@ -124,6 +121,9 @@ export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
       onClusterFocus?.(cluster);
       return { type: "cluster", cluster };
     });
+    const stars = starsByProvider.get(cluster.provider);
+    const pos = stars?.find((s) => s.cluster.id === cluster.id)?.pos;
+    if (pos) setPanelAnchor(pos);
   };
 
   const handleClosePanel = () => {
@@ -140,18 +140,16 @@ export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
       ? panelProvider.label
       : "";
 
-  const detailPanel = (
-    <DetailPanel open={panelOpen} onClose={handleClosePanel} title={panelTitle}>
-      {selectedCluster ? (
-        <ClusterDetailView
-          cluster={selectedCluster}
-          provider={panelProvider ?? undefined}
-        />
-      ) : panelProvider ? (
-        <ProviderDetailView provider={panelProvider} />
-      ) : null}
-    </DetailPanel>
-  );
+  // Anchor for the popup panel: set whenever a star/hub is selected,
+  // and intentionally NOT cleared on close so the exit animation has a
+  // stable origin to shrink back into. `panelOpen` gates visibility.
+  const renderAnchor = panelAnchor ?? undefined;
+
+  const panelChildren = selectedCluster ? (
+    <ClusterDetailView cluster={selectedCluster} provider={panelProvider ?? undefined} />
+  ) : panelProvider ? (
+    <ProviderDetailView provider={panelProvider} />
+  ) : null;
 
   // ---- Canvas (web) ---------------------------------------------------
   // Stacked layout (< sm). Core centered at top; each hub with its stars
@@ -312,45 +310,37 @@ export function CosmicWeb({ providers, onClusterFocus }: CosmicWebProps) {
           );
         });
       })}
+
+      {/* Anchored panel: pops up below the clicked star/hub, sharing the
+           same 0..100 coord space as the rest of the radial layout. */}
+      <DetailPanel
+        open={panelOpen}
+        onClose={handleClosePanel}
+        title={panelTitle}
+        anchor={renderAnchor}
+      >
+        {panelChildren}
+      </DetailPanel>
     </div>
   );
 
   // ---- Layout ----------------------------------------------------------
-  // Panel renders inline, never as a fixed overlay:
-  //   • lg+  → web takes full width when closed, animates its right
-  //            margin to make room when the panel opens. Panel is
-  //            absolutely positioned on the right so nothing is
-  //            reserved when there's no selection.
-  //   • <lg  → panel stacks below the web in normal flow.
-  const canvas = isWide ? radialCanvas : stackedCanvas;
-
-  if (isDesktop) {
-    return (
-      <div className="relative w-full">
-        <motion.div
-          className="w-auto"
-          initial={false}
-          animate={{
-            marginInlineEnd: panelOpen ? `${PANEL_OFFSET_REM}rem` : "0rem",
-          }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        >
-          {canvas}
-        </motion.div>
-        <div
-          className="absolute right-0 top-0"
-          style={{ width: `${PANEL_WIDTH_REM}rem` }}
-        >
-          {detailPanel}
-        </div>
-      </div>
-    );
+  // • Radial (sm+): the panel is rendered inside the canvas, anchored
+  //   below the clicked star/hub.
+  // • Stacked (<sm): stars are already in vertical flow, so the panel
+  //   stacks below the web in document order.
+  if (isWide) {
+    return <div className="relative w-full">{radialCanvas}</div>;
   }
 
   return (
     <div className="flex w-full flex-col gap-6">
-      <div className="w-full">{canvas}</div>
-      <div className="w-full">{detailPanel}</div>
+      <div className="w-full">{stackedCanvas}</div>
+      <div className="w-full">
+        <DetailPanel open={panelOpen} onClose={handleClosePanel} title={panelTitle}>
+          {panelChildren}
+        </DetailPanel>
+      </div>
     </div>
   );
 }
